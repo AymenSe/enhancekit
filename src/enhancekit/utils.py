@@ -26,8 +26,10 @@ def load_image(source: ImageInput) -> Image.Image:
         return Image.fromarray(np.clip(array * 255.0, 0, 255).astype("uint8"))
     if isinstance(source, np.ndarray):
         array = source
-        if array.ndim == 3 and array.shape[0] in (1, 3):
+        if array.ndim == 3 and array.shape[0] in (1, 3) and array.shape[-1] not in (1, 3):
             array = np.transpose(array, (1, 2, 0))
+        if np.issubdtype(array.dtype, np.floating):
+            array = np.clip(array * 255.0 if array.max() <= 1.0 else array, 0, 255)
         return Image.fromarray(array.astype("uint8"))
     return Image.open(source).convert("RGB")
 
