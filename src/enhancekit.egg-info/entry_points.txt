@@ -1,0 +1,2 @@
+[console_scripts]
+enhancekit = enhancekit.cli:main

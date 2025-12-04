@@ -1,0 +1,57 @@
+Metadata-Version: 2.4
+Name: enhancekit
+Version: 0.1.0
+Summary: A unified interface for deep learning image restoration and enhancement.
+Author-email: Aymen SEKHRI <asekhri.pro@gmail.com>
+License: MIT
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: torch>=2.0.0
+Requires-Dist: torchvision>=0.15.0
+Requires-Dist: numpy>=1.21.0
+Requires-Dist: Pillow>=9.0.0
+Requires-Dist: pydantic>=2.0.0
+Requires-Dist: tqdm
+Requires-Dist: timm
+Requires-Dist: einops
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: black; extra == "dev"
+Requires-Dist: isort; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
+Dynamic: license-file
+
+# enhancekit
+
+Enhancekit provides a unified, production-ready interface around deep learning models for image enhancement and restoration. It standardizes configuration, model loading, and inference across heterogeneous model implementations.
+
+## Features
+- Central registry for available models with metadata
+- Configurable precision and freezing policies
+- Simple image I/O helpers with batch and folder processing
+- CLI for quick experimentation
+
+## Installation
+```bash
+pip install enhancekit
+```
+
+## Quickstart
+```python
+from enhancekit import list_models, load_model
+
+print(list_models())
+model = load_model("identity", device="cpu", freeze=True)
+output_image = model.enhance_image("input.png")
+output_image.save("enhanced.png")
+```
+
+## CLI usage
+```bash
+enhancekit --list
+enhancekit identity ./examples/image.png --output ./outputs
+```
+
+## Extending
+New models can be added by registering a `ModelConfig` with a constructor that subclasses `BaseEnhancementModel`. Custom freeze logic can be implemented via the `freeze` method, and new preprocessing can rely on utilities in `enhancekit.utils`.
