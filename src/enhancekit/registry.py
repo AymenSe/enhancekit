@@ -8,6 +8,7 @@ from typing import Dict, Iterable, Optional, Sequence, Type
 
 from .config import ModelConfig
 from .core import ExampleEnhancementModel
+from .models import RestormerModel, UformerModel
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +87,21 @@ def default_registry() -> ModelRegistry:
         ExampleEnhancementModel,
     )
     model_sources = Path(__file__).resolve().parent / "model_sources.json"
-    registry.register_from_json(model_sources, ExampleEnhancementModel)
+    if model_sources.exists():
+        with model_sources.open("r", encoding="utf-8") as handle:
+            data = json.load(handle)
+        for item in data:
+            config = ModelConfig.from_dict(item)
+            architecture = config.architecture.lower()
+            if "restormer" in architecture:
+                constructor = RestormerModel
+            elif "uformer" in architecture:
+                constructor = UformerModel
+            else:
+                constructor = ExampleEnhancementModel
+            registry.register(config, constructor)
+    else:
+        logger.warning("Model configuration file %s not found; skipping", model_sources)
     return registry
 
 
