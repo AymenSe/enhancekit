@@ -1,8 +1,10 @@
 """Model registry for enhancekit."""
 from __future__ import annotations
 
+import json
 import logging
-from typing import Dict, Iterable, Optional, Type
+from pathlib import Path
+from typing import Dict, Iterable, Optional, Sequence, Type
 
 from .config import ModelConfig
 from .core import ExampleEnhancementModel
@@ -21,6 +23,19 @@ class ModelRegistry:
         self._configs[config.name] = config
         self._constructors[config.name] = constructor
         logger.debug("Registered model %s", config.name)
+
+    def register_many(self, configs: Sequence[ModelConfig], constructor: Type) -> None:
+        for config in configs:
+            self.register(config, constructor)
+
+    def register_from_json(self, path: Path, constructor: Type) -> None:
+        if not path.exists():
+            logger.warning("Model configuration file %s not found; skipping", path)
+            return
+        with path.open("r", encoding="utf-8") as handle:
+            data = json.load(handle)
+        configs = [ModelConfig.from_dict(item) for item in data]
+        self.register_many(configs, constructor)
 
     def list(self) -> Iterable[str]:
         return sorted(self._configs.keys())
@@ -70,6 +85,8 @@ def default_registry() -> ModelRegistry:
         ),
         ExampleEnhancementModel,
     )
+    model_sources = Path(__file__).resolve().parent / "model_sources.json"
+    registry.register_from_json(model_sources, ExampleEnhancementModel)
     return registry
 
 
