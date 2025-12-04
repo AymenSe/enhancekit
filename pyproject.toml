@@ -19,6 +19,7 @@ dependencies = [
     "tqdm",
     "timm",
     "einops",
+    "torch-dwconv",
 ]
 
 [project.optional-dependencies]
