@@ -1,14 +1,58 @@
+import math
+import time
+
+import importlib.util
+import numpy as np
 import torch
 import torch.nn as nn
-import torch.utils.checkpoint as checkpoint
-from timm.models.layers import DropPath, to_2tuple, trunc_normal_
 import torch.nn.functional as F
-from einops import rearrange, repeat
-from einops.layers.torch import Rearrange
-import math
-import numpy as np
-import time
+import torch.utils.checkpoint as checkpoint
 from torch import einsum
+
+from ..config import ModelConfig
+from ..core import BaseEnhancementModel, IdentityBackbone
+
+
+_EINOPS_AVAILABLE = importlib.util.find_spec("einops") is not None
+
+if _EINOPS_AVAILABLE:
+    from einops import rearrange, repeat
+    from einops.layers.torch import Rearrange
+else:  # pragma: no cover - exercised only when optional dependency missing
+    def rearrange(*_args, **_kwargs):
+        raise ImportError("einops is required for Uformer functionality")
+
+    def repeat(*_args, **_kwargs):
+        raise ImportError("einops is required for Uformer functionality")
+
+    class Rearrange(nn.Module):
+        def __init__(self, *_args, **_kwargs):
+            super().__init__()
+
+        def forward(self, _x):  # type: ignore[override]
+            raise ImportError("einops is required for Uformer functionality")
+
+
+def to_2tuple(x):
+    return x if isinstance(x, tuple) else (x, x)
+
+
+def trunc_normal_(tensor, mean=0.0, std=1.0, a=-2.0, b=2.0):
+    return nn.init.trunc_normal_(tensor, mean=mean, std=std, a=a, b=b)
+
+
+class DropPath(nn.Module):
+    def __init__(self, drop_prob: float = 0.0) -> None:
+        super().__init__()
+        self.drop_prob = drop_prob
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore[override]
+        if self.drop_prob == 0.0 or not self.training:
+            return x
+        keep_prob = 1 - self.drop_prob
+        shape = (x.shape[0],) + (1,) * (x.ndim - 1)
+        random_tensor = x.new_empty(shape).bernoulli_(keep_prob)
+        return x.div(keep_prob) * random_tensor
 
 
 class FastLeFF(nn.Module):
@@ -1326,6 +1370,33 @@ class Uformer(nn.Module):
         # Output Projection
         flops += self.output_proj.flops(self.reso,self.reso)
         return flops
+
+
+class UformerModel(BaseEnhancementModel):
+    """Wrapper that adapts the Uformer architecture to the enhancekit API."""
+
+    def __init__(self, config: ModelConfig) -> None:
+        super().__init__(config)
+        backbone_kwargs = {**config.kwargs}
+        self.backbone = Uformer(**backbone_kwargs)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore[override]
+        return self.backbone(x)
+
+
+class RestormerModel(BaseEnhancementModel):
+    """Placeholder wrapper for Restormer architecture.
+
+    A lightweight identity backbone is used until a full Restormer
+    implementation is available.
+    """
+
+    def __init__(self, config: ModelConfig) -> None:
+        super().__init__(config)
+        self.backbone = IdentityBackbone()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore[override]
+        return self.backbone(x)
 
 
 if __name__ == "__main__":
