@@ -37,7 +37,8 @@ class BaseEnhancementModel(nn.Module):
             return
         ckpt_path = Path(path)
         if not ckpt_path.exists():
-            logger.warning("Checkpoint %s does not exist; skipping load", ckpt_path)
+            repo_hint = f" in repository {self.config.repository}" if self.config.repository else ""
+            logger.warning("Checkpoint %s does not exist%s; skipping load", ckpt_path, repo_hint)
             return
         state = torch.load(ckpt_path, map_location="cpu")
         state_dict = state.get("state_dict", state)

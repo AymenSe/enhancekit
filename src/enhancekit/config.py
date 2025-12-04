@@ -66,6 +66,7 @@ class ModelConfig:
     task: str
     architecture: str
     checkpoint: Optional[str] = None
+    repository: Optional[str] = None
     device: str = "cpu"
     precision: Precision = Precision.FP32
     freeze_mode: FreezeMode = FreezeMode.NONE
@@ -85,6 +86,7 @@ class ModelConfig:
             task=data.get("task", "unknown"),
             architecture=data.get("architecture", data["name"]),
             checkpoint=data.get("checkpoint"),
+            repository=data.get("repository"),
             device=data.get("device", "cpu"),
             precision=precision,
             freeze_mode=freeze_mode,
@@ -137,6 +139,7 @@ class ModelConfig:
             "task": self.task,
             "architecture": self.architecture,
             "checkpoint": self.checkpoint,
+            "repository": self.repository,
             "device": self.device,
             "precision": self.precision.value,
             "freeze_mode": self.freeze_mode.value,
