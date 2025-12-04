@@ -4,6 +4,7 @@
     "task": "image-restoration",
     "architecture": "Uformer",
     "checkpoint": "weights/uformer.pth",
+    "download_url": "https://mailustceducn-my.sharepoint.com/personal/zhendongwang_mail_ustc_edu_cn/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fzhendongwang%5Fmail%5Fustc%5Fedu%5Fcn%2FDocuments%2FUformer%2Fpretrained%5Fmodels%2Fdenoise%2FUformer%5FB%2Epth&parent=%2Fpersonal%2Fzhendongwang%5Fmail%5Fustc%5Fedu%5Fcn%2FDocuments%2FUformer%2Fpretrained%5Fmodels%2Fdenoise&ga=1",
     "repository": "https://github.com/ZhendongWang6/Uformer",
     "device": "cuda"
   },
