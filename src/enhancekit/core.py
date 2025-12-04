@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from urllib.parse import urlparse
 from pathlib import Path
 from typing import Iterable, List, Optional
 
@@ -37,13 +38,37 @@ class BaseEnhancementModel(nn.Module):
             return
         ckpt_path = Path(path)
         if not ckpt_path.exists():
+            ckpt_path = self._download_checkpoint(path)
+        if ckpt_path is None or not ckpt_path.exists():
             repo_hint = f" in repository {self.config.repository}" if self.config.repository else ""
-            logger.warning("Checkpoint %s does not exist%s; skipping load", ckpt_path, repo_hint)
+            logger.warning("Checkpoint %s does not exist%s; skipping load", path, repo_hint)
             return
         state = torch.load(ckpt_path, map_location="cpu")
         state_dict = state.get("state_dict", state)
         self.load_state_dict(state_dict, strict=False)
         logger.info("Loaded weights for %s from %s", self.config.name, ckpt_path)
+
+    def _download_checkpoint(self, location: str) -> Optional[Path]:
+        """Download a checkpoint to the local cache if a URL is available."""
+
+        url = self.config.download_url or location
+        parsed = urlparse(url)
+        if parsed.scheme not in {"http", "https"}:
+            return None
+        cache_dir = Path(torch.hub.get_dir()) / "enhancekit"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        filename = Path(parsed.path).name or f"{self.config.name}.pth"
+        cache_path = cache_dir / filename
+        if cache_path.exists():
+            logger.info("Using cached checkpoint for %s at %s", self.config.name, cache_path)
+            return cache_path
+        try:
+            torch.hub.download_url_to_file(url, cache_path)
+        except Exception as exc:  # pragma: no cover - network-dependent
+            logger.warning("Failed to download checkpoint from %s: %s", url, exc)
+            return None
+        logger.info("Downloaded checkpoint for %s to %s", self.config.name, cache_path)
+        return cache_path
 
     def to(self, *args, **kwargs):  # type: ignore[override]
         module = super().to(*args, **kwargs)

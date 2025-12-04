@@ -66,6 +66,7 @@ class ModelConfig:
     task: str
     architecture: str
     checkpoint: Optional[str] = None
+    download_url: Optional[str] = None
     repository: Optional[str] = None
     device: str = "cpu"
     precision: Precision = Precision.FP32
@@ -86,6 +87,7 @@ class ModelConfig:
             task=data.get("task", "unknown"),
             architecture=data.get("architecture", data["name"]),
             checkpoint=data.get("checkpoint"),
+            download_url=data.get("download_url"),
             repository=data.get("repository"),
             device=data.get("device", "cpu"),
             precision=precision,
@@ -139,6 +141,7 @@ class ModelConfig:
             "task": self.task,
             "architecture": self.architecture,
             "checkpoint": self.checkpoint,
+            "download_url": self.download_url,
             "repository": self.repository,
             "device": self.device,
             "precision": self.precision.value,
