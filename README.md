@@ -23,6 +23,18 @@ output_image = model.enhance_image("input.png")
 output_image.save("enhanced.png")
 ```
 
+### Calling Uformer through the API
+```python
+from enhancekit import load_model
+
+# Load the registered Uformer checkpoint and move it to GPU if available
+uformer = load_model("uformer", device="cuda", freeze=True)
+
+# Run inference just like any other enhancement model
+result = uformer.enhance_image("input.png")
+result.save("uformer_output.png")
+```
+
 ## CLI usage
 ```bash
 enhancekit --list
